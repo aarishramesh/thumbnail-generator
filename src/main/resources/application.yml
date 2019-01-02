@@ -1,5 +1,8 @@
 amazonProperties:
   endpointUrl: https://s3.us-east-2.amazonaws.com
-  accessKey: AKIAIDMKDEINLEV2KLFA
-  secretKey: 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
-  bucketName: new-awesome-bucket-1
+  accessKey: AKIAJHRZ5NLXIXACDOOQ
+  secretKey: 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
+  bucketName: previewappimages
+  thumbnailBucketName: previewappthumbnail
+server.port : 9080
+

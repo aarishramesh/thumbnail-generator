@@ -1,4 +1,15 @@
-package com.example.bucket.service;
+package com.thumbnail.generator.service;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -7,18 +18,11 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Date;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
 @Service
-public class AmazonClient {
+public class AmazonClientService {
 
     private AmazonS3 s3client;
 
@@ -26,6 +30,8 @@ public class AmazonClient {
     private String endpointUrl;
     @Value("${amazonProperties.bucketName}")
     private String bucketName;
+    @Value("${amazonProperties.thumbnailBucketName}")
+    private String thumbnailBucketName;
     @Value("${amazonProperties.accessKey}")
     private String accessKey;
     @Value("${amazonProperties.secretKey}")
@@ -37,6 +43,10 @@ public class AmazonClient {
         this.s3client = new AmazonS3Client(credentials);
     }
 
+    public AmazonS3 getS3Client() {
+    		return this.s3client;
+    }
+    
     public String uploadFile(MultipartFile multipartFile) {
         String fileUrl = "";
         try {
@@ -60,7 +70,7 @@ public class AmazonClient {
     }
 
     private String generateFileName(MultipartFile multiPart) {
-        return new Date().getTime() + "-" + multiPart.getOriginalFilename().replace(" ", "_");
+        return multiPart.getOriginalFilename().replace(" ", "_");
     }
 
     private void uploadFileTos3bucket(String fileName, File file) {
@@ -73,5 +83,9 @@ public class AmazonClient {
         s3client.deleteObject(new DeleteObjectRequest(bucketName, fileName));
         return "Successfully deleted";
     }
-
+    
+    public S3ObjectInputStream getFileFromS3Bucket() {
+    		S3Object obj = s3client.getObject(thumbnailBucketName, "natureHighRes_thumbnail.jpg");
+    		return obj.getObjectContent();
+    }
 }
