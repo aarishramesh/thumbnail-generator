@@ -1,7 +1,9 @@
 amazonProperties:
-  endpointUrl: https://s3.us-east-2.amazonaws.com
-  accessKey: AKIAJHRZ5NLXIXACDOOQ
-  secretKey: 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
+  endpointUrl: https://s3.us-east-1.amazonaws.com
+  imagesBucketRegion: us-east-2
+  thumbnailBucketRegion: us-east-1
+  accessKey: AKIAJKW2YKDBMJCAXKLQ
+  secretKey: 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
   bucketName: previewappimages
   thumbnailBucketName: previewappthumbnail
 server.port : 9080
