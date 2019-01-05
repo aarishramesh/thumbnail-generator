@@ -43,7 +43,7 @@ public class S3PollerConfiguration {
 	private ThumbnailGeneratorService thumbnailGeneratorService;
 
 	@Bean
-	@InboundChannelAdapter(value = "s3FilesChannel", poller = @Poller(fixedDelay = "5"))
+	//@InboundChannelAdapter(value = "s3FilesChannel", poller = @Poller(fixedDelay = "5"))
 	public MessageSource<InputStream> s3InboundStreamingMessageSource() {    
 		S3StreamingMessageSource messageSource = new S3StreamingMessageSource(template());
 		messageSource.setRemoteDirectory(bucketName);
