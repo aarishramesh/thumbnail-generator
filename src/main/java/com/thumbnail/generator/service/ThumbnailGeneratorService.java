@@ -30,7 +30,6 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.BinaryUtils;
 
 import ch.qos.logback.classic.Logger;
@@ -83,15 +82,11 @@ public class ThumbnailGeneratorService {
 	public boolean uploadFile(MultipartFile multipartFile) {
 		try {
 			File file = convertMultiPartToFile(multipartFile);
-			if (validateImageFileBeforeUpload(file)) {
-				String fileName = generateFileName(multipartFile);
-				uploadFileTos3bucket(fileName, file);
-				file.delete();
-				return true;
-			} else {
-				// Invalid file error needs to be returned
-				//return 400 error code;
-			}
+			String fileName = generateFileName(multipartFile);
+			uploadFileTos3bucket(fileName, file);
+			file.delete();
+			return true;
+
 		} catch (IOException ex) {
 			log.error("Error while converting multipart file {} to file object", multipartFile.getName(), ex);
 		} catch (Exception ex) {
@@ -100,13 +95,19 @@ public class ThumbnailGeneratorService {
 		return false;
 	}
 
-	private boolean validateImageFileBeforeUpload(File file) {
-		String mimetype= new MimetypesFileTypeMap().getContentType(file);
-		String type = mimetype.split("/")[0];
-		if(type.equals("image"))
-			return true;
-		else 
-			return false;
+	public boolean validateImageFileBeforeUpload(MultipartFile multipartFile) {
+		try {
+			File file = convertMultiPartToFile(multipartFile);
+			String mimetype= new MimetypesFileTypeMap().getContentType(file);
+			String type = mimetype.split("/")[0];
+			if(type.equals("image"))
+				return true;
+			else 
+				return false;
+		} catch (Exception ex) {
+			log.error("Error while converting multipart file {} to file object", multipartFile.getName(), ex);
+		}
+		return false;
 	}
 
 	private File convertMultiPartToFile(MultipartFile file) throws IOException {
@@ -126,12 +127,12 @@ public class ThumbnailGeneratorService {
 				.withCannedAcl(CannedAccessControlList.PublicRead));
 	}
 
-	public S3ObjectInputStream getFileFromS3Bucket(String fileName) {
+	public S3Object getFileFromS3Bucket(String fileName) {
 		S3Object s3Obj = null;
 		try {
 			s3Obj = thumbnailS3Client.getObject(thumbnailBucketName, fileName + "_thumbnail.jpg");
 			if (s3Obj.getObjectContent() != null)
-				return s3Obj.getObjectContent();
+				return s3Obj;
 			else {
 				log.info("Thumbnail file {} not found in the bucket {} ", fileName, thumbnailBucketName);
 			}
