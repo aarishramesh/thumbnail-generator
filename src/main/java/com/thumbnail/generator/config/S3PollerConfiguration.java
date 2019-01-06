@@ -8,12 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.aws.inbound.S3StreamingMessageSource;
 import org.springframework.integration.aws.support.S3RemoteFileTemplate;
 import org.springframework.integration.aws.support.S3SessionFactory;
+import org.springframework.integration.aws.support.filters.S3SimplePatternFileListFilter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
@@ -44,6 +43,7 @@ public class S3PollerConfiguration {
 
 	public MessageSource<InputStream> s3InboundStreamingMessageSource() {  
 		S3StreamingMessageSource messageSource = new S3StreamingMessageSource(template());
+	    messageSource.setFilter(new S3SimplePatternFileListFilter("unprocessed*"));
 		messageSource.setRemoteDirectory(bucketName);
 		//messageSource.setFilter(new S3PersistentAcceptOnceFileListFilter(new SimpleMetadataStore(),
 		//		""));    	
@@ -65,7 +65,7 @@ public class S3PollerConfiguration {
 		System.out.println(Thread.currentThread().getName());
 		return IntegrationFlows
 				.from(s3InboundStreamingMessageSource(),
-						e -> e.poller(p -> p.fixedDelay(10, TimeUnit.SECONDS)))
+						e -> e.poller(p -> p.fixedDelay(5, TimeUnit.SECONDS)))
 				.handle(Message.class, (payload, header) -> thumbnailGeneratorService.generateThumbnail(payload.getHeaders(), payload.getPayload()))
 				.get();
 	}

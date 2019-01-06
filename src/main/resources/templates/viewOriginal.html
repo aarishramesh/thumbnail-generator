@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<h1>Thumbnail generator application - View original image </h1>
+
+<form method="GET" action="thumbnail-generator/image-view">
+	
+    Image file name : <input type="text" name="filename" th:value="${filename}" class="form-control"/><br/><br/>
+    		<input type="hidden" name="isThumbnail" th:value="${false}" class="form-control"/>
+    <input type="submit" value="Submit" />
+</form>
+
+</body>
+</html>

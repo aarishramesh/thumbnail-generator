@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.PostConstruct;
@@ -27,6 +28,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -39,6 +42,8 @@ import net.coobird.thumbnailator.Thumbnails;
 public class ThumbnailGeneratorService {
 
 	private static final Logger log = (Logger) LoggerFactory.getLogger(ThumbnailGeneratorService.class.getName());
+	
+	private ConcurrentHashMap<String, Boolean> imageVsProcessed = new ConcurrentHashMap<String, Boolean>();
 
 	private AmazonS3 imagesS3Client;
 
@@ -68,7 +73,6 @@ public class ThumbnailGeneratorService {
 		this.thumbnailS3Client = AmazonS3ClientBuilder.standard()
 				.withClientConfiguration(new ClientConfiguration().withMaxConnections(100))
 				.withRegion(thumbnailBucketRegion).withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
-		//this.s3Client = new AmazonS3Client(credentials);
 	}
 
 	public AmazonS3 getImagesS3Client() {
@@ -123,18 +127,28 @@ public class ThumbnailGeneratorService {
 	}
 
 	private void uploadFileTos3bucket(String fileName, File file) {
-		imagesS3Client.putObject(new PutObjectRequest(bucketName, fileName, file)
+		String newFileName = "unprocessed_" + fileName;
+		imagesS3Client.putObject(new PutObjectRequest(bucketName, newFileName, file)
 				.withCannedAcl(CannedAccessControlList.PublicRead));
+		imageVsProcessed.put(fileName, false);
 	}
 
-	public S3Object getFileFromS3Bucket(String fileName) {
+	public S3Object getFileFromS3Bucket(String fileName, boolean isThumbnail) {
 		S3Object s3Obj = null;
 		try {
-			s3Obj = thumbnailS3Client.getObject(thumbnailBucketName, fileName + "_thumbnail.jpg");
+			if (isThumbnail) {
+				s3Obj = thumbnailS3Client.getObject(thumbnailBucketName,  fileName);
+			} else {
+				Boolean isProcessed = imageVsProcessed.get(fileName);
+				if (isProcessed != null && !isProcessed) {
+					fileName = "unprocessed_" + fileName;
+				}
+				s3Obj = imagesS3Client.getObject(bucketName, fileName);
+			}
 			if (s3Obj.getObjectContent() != null)
 				return s3Obj;
 			else {
-				log.info("Thumbnail file {} not found in the bucket {} ", fileName, thumbnailBucketName);
+				log.info("file {} not found in the bucket {} ", fileName, thumbnailBucketName);
 			}
 
 		} catch (AmazonServiceException ase ) {
@@ -142,7 +156,7 @@ public class ThumbnailGeneratorService {
 		}
 		return null;
 	}
-
+	
 	public MessageHandler generateThumbnail(MessageHeaders headers, Object obj) {
 		System.out.println(Thread.currentThread().getName());
 		InputStream is = null;
@@ -169,13 +183,19 @@ public class ThumbnailGeneratorService {
 				throw new IllegalStateException("MessageDigest could not be initialized because it uses an unknown algorithm", e);
 			}
 			System.out.println(" Uploading the converted thumbnail");
-			System.out.println(fileInfoJson.get("filename"));
-			String fileNamePrefix = ((String)fileInfoJson.get("filename")).split("\\.")[0];
+			String unprocessedFileName = ((String)fileInfoJson.get("filename"));
+			String origFileName = unprocessedFileName.substring(unprocessedFileName.indexOf("_") + 1, unprocessedFileName.length());
 			ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-			getThumbnailS3Client().putObject(thumbnailBucketName, fileNamePrefix 
-					+ "_thumbnail.jpg", bais
+			getThumbnailS3Client().putObject(thumbnailBucketName, origFileName, bais
 					, objectMetadata);
 			System.out.println(" Upload complete");
+			imageVsProcessed.put(origFileName, true);
+			
+			// Rename the file to original name
+			CopyObjectRequest copyObjRequest = new CopyObjectRequest(bucketName, 
+					unprocessedFileName, bucketName, origFileName);
+			getImagesS3Client().copyObject(copyObjRequest);
+			getImagesS3Client().deleteObject(new DeleteObjectRequest(bucketName, unprocessedFileName));
 			try {
 				baos.close();
 			} catch (Exception ex) {
