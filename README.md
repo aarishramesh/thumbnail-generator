@@ -8,7 +8,7 @@ The application provides UI for uploading an image, viewing a generated thumbnai
 
 - Spring boot - Version 1.5.9 as Java microservice framework
 
-- AWS S3 for object store
+- AWS S3 for image store
 
 - Thumbnailator version 0.4 for thumbnail generation of images
 
