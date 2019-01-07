@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.example</groupId>
-	<artifactId>s3_bucket</artifactId>
+	<artifactId>thumbnail-generator</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>spring_boot_s3bucket</name>
-	<description>Demo project for Spring Boot and s3 bucket</description>
+	<name>thumbnail-generator</name>
+	<description>Thumbnail generator application for images using spring boot</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -64,7 +64,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
-		
+
 		<!-- Optional, test for static content, bootstrap CSS -->
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -148,6 +148,11 @@
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk</artifactId>
 			<version>1.11.133</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-aws -->

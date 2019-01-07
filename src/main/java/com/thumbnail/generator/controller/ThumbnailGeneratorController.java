@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,8 @@ public class ThumbnailGeneratorController {
 			S3ObjectInputStream is = obj.getObjectContent();
 			if (is != null) {
 				try {
-					response.getOutputStream().write(is.readAllBytes());
+					byte[] bytes = IOUtils.toByteArray(is);
+					response.getOutputStream().write(bytes);
 					response.getOutputStream().flush();
 					response.getOutputStream().close();
 					return null;

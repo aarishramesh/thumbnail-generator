@@ -24,14 +24,17 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.thumbnail.generator.service.ThumbnailGeneratorService;
 
+/**
+ * Async Integration component which handles polling S3 for new objects matching the defined regex every 2 seconds 
+ * 	and handles the delegation of S3 image thumbnail generation task to the service class 
+ *
+ */
 @Configuration
 @EnableIntegration
 @IntegrationComponentScan
 @EnableAsync
 public class S3PollerConfiguration {
-	
-	//private static final Logger log = (Logger) LoggerFactory.getLogger(S3PollerConfiguration.class);
-	
+		
 	@Value("${amazonProperties.bucketName}")
 	private String bucketName;
 
@@ -44,9 +47,7 @@ public class S3PollerConfiguration {
 	public MessageSource<InputStream> s3InboundStreamingMessageSource() {  
 		S3StreamingMessageSource messageSource = new S3StreamingMessageSource(template());
 	    messageSource.setFilter(new S3SimplePatternFileListFilter("unprocessed*"));
-		messageSource.setRemoteDirectory(bucketName);
-		//messageSource.setFilter(new S3PersistentAcceptOnceFileListFilter(new SimpleMetadataStore(),
-		//		""));    	
+		messageSource.setRemoteDirectory(bucketName);	
 		return messageSource;
 	}
 
@@ -62,10 +63,9 @@ public class S3PollerConfiguration {
 	
 	@Bean
 	IntegrationFlow fileReadingFlow() throws IOException {
-		System.out.println(Thread.currentThread().getName());
 		return IntegrationFlows
 				.from(s3InboundStreamingMessageSource(),
-						e -> e.poller(p -> p.fixedDelay(5, TimeUnit.SECONDS)))
+						e -> e.poller(p -> p.fixedDelay(2, TimeUnit.SECONDS)))
 				.handle(Message.class, (payload, header) -> thumbnailGeneratorService.generateThumbnail(payload.getHeaders(), payload.getPayload()))
 				.get();
 	}
