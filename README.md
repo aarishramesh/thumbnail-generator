@@ -4,16 +4,16 @@ Spring-boot application which watches S3 bucket for images, generates thumbnails
 
 The application provides UI for uploading an image, viewing a generated thumbnail, viewing original image by inputing its file name
 
-#Tech stack
+## Tech stack
 
--> Spring boot - version 1.5.9 as Java microservice framework
+- Spring boot - Version 1.5.9 as Java microservice framework
 
--> AWS S3 for object store
+- AWS S3 for object store
 
--> Thumbnailator version 0.4 for thumbnail generation of images
+- Thumbnailator version 0.4 for thumbnail generation of images
 
--> Spring AWS integration and spring integration for S3 polling
+- Spring AWS integration and spring integration for S3 polling
 
--> Thymeleaf for static resource generation
+- Thymeleaf for static resource generation
 
--> Maven as build tool
+- Maven as build tool
