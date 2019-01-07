@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -225,9 +226,16 @@ public class ThumbnailGeneratorService {
 		ByteArrayInputStream bais = new ByteArrayInputStream(arr);
 		getThumbnailS3Client().putObject(thumbnailBucketName, origFileName, bais
 				, objectMetadata);
-		System.out.println(" Upload complete");
+		log.debug(" Upload complete");
+		log.debug(origFileName);
+		for (Entry entry : imageVsProcessed.entrySet()) {
+			System.out.println(entry.getKey() + " : " + entry.getValue());
+		}
 		imageVsProcessed.put(origFileName, true);
 		
+		for (Entry entry : imageVsProcessed.entrySet()) {
+			System.out.println(entry.getKey() + " : " + entry.getValue());
+		}
 		// Rename the file to original name
 		CopyObjectRequest copyObjRequest = new CopyObjectRequest(bucketName, 
 				unprocessedFileName, bucketName, origFileName);
