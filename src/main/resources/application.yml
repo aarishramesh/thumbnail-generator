@@ -1,12 +1,12 @@
 amazonProperties:
-  endpointUrl: https://s3.us-east-1.amazonaws.com
-  imagesBucketRegion: us-east-2
-  thumbnailBucketRegion: us-east-1
-  accessKey: AKIAILDFNPQVDS7NI7CA
-  secretKey: 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
-  bucketName: previewappimages
-  thumbnailBucketName: previewappthumbnail
-server.port : 9080
+  endpointUrl: XXXXXXXXXX
+  imagesBucketRegion: XXXXXXXXX
+  thumbnailBucketRegion: XXXXXXXXXX
+  accessKey: XXXXXXXXXX
+  secretKey: XXXXXXXXXX
+  bucketName: XXXXXXXXXX
+  thumbnailBucketName: XXXXXXXXXX
+server.port : XXXXXXXXXX
 server.error.whitelabel.enabled: false
 spring.http.multipart.maxFileSize : 30MB
 spring.http.multipart.maxRequestSize : 30MB
